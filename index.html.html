@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoxelaRush</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vox-green: #00E676;
+    --vox-cyan: #00BFFF;
+    --vox-dark: #080D0A;
+    --vox-mid: #0E1610;
+    --vox-card: #121C14;
+    --vox-border: #1A2E1E;
+    --vox-muted: #3D5A45;
+    --vox-white: #F0FFF4;
+    --vox-yellow: #FFE600;
+    --vox-red: #FF3B3B;
+    --vox-orange: #FF8C00;
+    --vox-purple: #9D4EDD;
+    --vox-gold: #FFD700;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--vox-dark);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--vox-white);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0,230,118,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 80% 20%, rgba(0,191,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,230,118,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,230,118,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  #app {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    height: auto;
+    padding: 0;
+    animation: fadeSlide 0.35s ease;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== INTRO ===== */
+  #screen-intro { background: var(--vox-dark); justify-content: space-between; }
+  .intro-top { padding: 56px 28px 32px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .logo-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.2);
+    border-radius: 100px; padding: 6px 14px; margin-bottom: 40px; width: fit-content;
+  }
+  .logo-badge span { font-size: 11px; font-weight: 500; color: var(--vox-green); letter-spacing: 1.5px; text-transform: uppercase; }
+  .logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--vox-green); box-shadow: 0 0 8px var(--vox-green); animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .intro-title { font-family: 'Syne', sans-serif; font-size: 44px; font-weight: 800; line-height: 1.05; margin-bottom: 12px; }
+  .intro-title em { color: var(--vox-green); font-style: normal; }
+  .intro-sub { font-size: 15px; color: var(--vox-muted); line-height: 1.6; max-width: 300px; margin-bottom: 40px; }
+  .intro-sub strong { color: var(--vox-white); }
+  .scenario-card {
+    background: var(--vox-card); border: 1px solid var(--vox-border);
+    border-radius: 16px; padding: 18px 20px; display: flex; align-items: center;
+    gap: 14px; margin-bottom: 12px;
+  }
+  .scenario-icon { font-size: 28px; flex-shrink: 0; }
+  .scenario-text { font-size: 13px; color: rgba(240,255,244,0.7); line-height: 1.5; }
+  .scenario-text strong { color: var(--vox-white); font-size: 14px; display: block; margin-bottom: 2px; }
+  .intro-bottom { padding: 24px 28px 48px; border-top: 1px solid var(--vox-border); display: flex; flex-direction: column; gap: 10px; }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    width: 100%; padding: 18px; background: var(--vox-green);
+    color: var(--vox-dark); border: none; border-radius: 14px;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,230,118,0.3); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-secondary {
+    width: 100%; padding: 16px; background: transparent;
+    color: var(--vox-muted); border: 1px solid var(--vox-border);
+    border-radius: 14px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--vox-muted); color: var(--vox-white); }
+  .btn-cyan {
+    width: 100%; padding: 16px;
+    background: rgba(0,191,255,0.1); color: var(--vox-cyan);
+    border: 1px solid rgba(0,191,255,0.3); border-radius: 14px;
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-cyan:hover { background: rgba(0,191,255,0.18); transform: translateY(-1px); }
+
+  /* ===== LEVEL SELECT ===== */
+  #screen-level { padding: 48px 24px 40px; gap: 0; }
+  .section-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--vox-green); margin-bottom: 6px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .section-sub { font-size: 13px; color: var(--vox-muted); margin-bottom: 20px; }
+  .level-grid { display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 20px; }
+  .level-card {
+    background: var(--vox-card); border: 1px solid var(--vox-border);
+    border-radius: 16px; padding: 18px 20px; cursor: pointer;
+    transition: all 0.25s; display: flex; align-items: center;
+    gap: 16px; position: relative; overflow: hidden;
+  }
+  .level-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--vox-green);
+    transform: scaleY(0); transition: transform 0.25s; transform-origin: bottom;
+  }
+  .level-card.unlocked:hover { border-color: rgba(0,230,118,0.3); transform: translateX(4px); }
+  .level-card.unlocked:hover::before { transform: scaleY(1); }
+  .level-card.locked {
+    opacity: 0.55; cursor: not-allowed;
+    filter: grayscale(0.6);
+  }
+  .level-card.locked::before { display: none; }
+  .level-emoji { font-size: 32px; flex-shrink: 0; }
+  .level-info { flex: 1; }
+  .level-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+  .level-desc { font-size: 12px; color: var(--vox-muted); }
+  .level-lock-msg { font-size: 10px; color: var(--vox-orange); margin-top: 4px; }
+  .level-diff { font-size: 10px; padding: 4px 10px; border-radius: 100px; font-weight: 600; letter-spacing: 0.5px; flex-shrink: 0; }
+  .diff-easy { background: rgba(0,230,118,0.15); color: var(--vox-green); }
+  .diff-mid  { background: rgba(255,140,0,0.15); color: var(--vox-orange); }
+  .diff-hard { background: rgba(255,59,59,0.15); color: var(--vox-red); }
+  .diff-locked { background: rgba(80,80,80,0.2); color: #666; }
+  .lock-icon { font-size: 18px; flex-shrink: 0; }
+
+  /* ===== SCAN SCREEN ===== */
+  #screen-scan {
+    background: var(--vox-dark); justify-content: center; align-items: center; padding: 32px 24px;
+    position: relative; overflow: hidden;
+  }
+  .scan-bg-ring {
+    position: absolute; border-radius: 50%;
+    border: 1px solid rgba(0,230,118,0.12);
+    animation: ringExpand 3s linear infinite;
+  }
+  .scan-bg-ring:nth-child(1) { width: 200px; height: 200px; animation-delay: 0s; }
+  .scan-bg-ring:nth-child(2) { width: 340px; height: 340px; animation-delay: 1s; }
+  .scan-bg-ring:nth-child(3) { width: 480px; height: 480px; animation-delay: 2s; }
+  @keyframes ringExpand {
+    0%   { opacity: 0.6; transform: scale(0.7); }
+    100% { opacity: 0; transform: scale(1.4); }
+  }
+  .scan-content { position: relative; z-index: 2; width: 100%; max-width: 360px; text-align: center; }
+  .scan-radar {
+    width: 120px; height: 120px; border-radius: 50%;
+    border: 2px solid rgba(0,230,118,0.4);
+    background: radial-gradient(circle, rgba(0,230,118,0.08) 0%, transparent 70%);
+    margin: 0 auto 32px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,230,118,0.15), inset 0 0 30px rgba(0,230,118,0.05);
+  }
+  .scan-radar-sweep {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(0,230,118,0.35) 60deg, transparent 60deg);
+    animation: radarSpin 2s linear infinite;
+  }
+  @keyframes radarSpin { to { transform: rotate(360deg); } }
+  .scan-radar-dot { width: 12px; height: 12px; background: var(--vox-green); border-radius: 50%; box-shadow: 0 0 16px var(--vox-green); z-index: 1; animation: pulse 1s ease-in-out infinite; }
+  .scan-label { font-size: 11px; letter-spacing: 2px; color: var(--vox-green); text-transform: uppercase; margin-bottom: 12px; }
+  .scan-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 24px; }
+  .scan-lines { text-align: left; background: rgba(0,230,118,0.04); border: 1px solid rgba(0,230,118,0.12); border-radius: 14px; padding: 18px 20px; margin-bottom: 28px; }
+  .scan-line { font-size: 13px; color: rgba(240,255,244,0.7); line-height: 2; display: flex; align-items: center; gap: 8px; }
+  .scan-line.highlight { color: var(--vox-green); font-weight: 600; }
+  .scan-line.check { color: rgba(240,255,244,0.55); }
+  .scan-check { color: var(--vox-green); font-weight: 700; }
+  .scan-cursor { display: inline-block; width: 8px; height: 14px; background: var(--vox-green); animation: blink 0.8s step-end infinite; vertical-align: middle; margin-left: 4px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ===== JUEGO ===== */
+  #screen-game { padding: 0; flex-direction: column; min-height: 100vh; }
+  .game-header { padding: 24px 20px 16px; background: var(--vox-mid); border-bottom: 1px solid var(--vox-border); }
+  .game-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .game-scenario { font-size: 12px; color: var(--vox-muted); display: flex; align-items: center; gap: 6px; }
+  .game-scenario-emoji { font-size: 16px; }
+  .timer-wrap { display: flex; align-items: center; gap: 8px; }
+  .timer-display { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--vox-green); transition: color 0.3s; min-width: 52px; text-align: right; }
+  .timer-display.warning { color: var(--vox-orange); }
+  .timer-display.danger  { color: var(--vox-red); animation: shake 0.4s ease infinite; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
+  .timer-bar-wrap { height: 4px; background: var(--vox-border); border-radius: 4px; overflow: hidden; }
+  .timer-bar { height: 100%; background: var(--vox-green); border-radius: 4px; transition: width 1s linear, background 0.3s; }
+  .mission-text { font-size: 14px; line-height: 1.5; color: rgba(240,255,244,0.85); margin-top: 10px; }
+  .mission-text strong { color: var(--vox-green); }
+  .game-body { flex: 1; overflow-y: visible; padding: 20px; padding-bottom: 120px; display: flex; flex-direction: column; gap: 20px; }
+  .product-group-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--vox-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .product-group-label::after { content: ''; flex: 1; height: 1px; background: var(--vox-border); }
+  .product-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .product-card {
+    background: var(--vox-card); border: 2px solid var(--vox-border);
+    border-radius: 14px; padding: 14px 10px; text-align: center;
+    cursor: pointer; transition: all 0.2s; position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .product-card:hover { border-color: rgba(0,230,118,0.4); transform: translateY(-2px); }
+  .product-card.selected { border-color: var(--vox-green); background: rgba(0,230,118,0.08); transform: translateY(-2px); }
+  .product-card.selected::after { content: '✓'; position: absolute; top: 6px; right: 8px; font-size: 11px; color: var(--vox-green); font-weight: 700; }
+  .product-emoji { font-size: 28px; }
+  .product-name { font-size: 11px; color: rgba(240,255,244,0.8); line-height: 1.3; }
+  .product-price { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--vox-green); }
+
+  /* Location section */
+  .location-section { background: var(--vox-card); border: 1px solid var(--vox-border); border-radius: 16px; overflow: hidden; }
+  .location-tabs { display: flex; border-bottom: 1px solid var(--vox-border); }
+  .location-tab { flex: 1; padding: 12px; font-size: 12px; text-align: center; cursor: pointer; color: var(--vox-muted); border: none; background: transparent; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .location-tab.active { color: var(--vox-green); background: rgba(0,230,118,0.06); border-bottom: 2px solid var(--vox-green); }
+  .location-panel { display: none; padding: 14px; }
+  .location-panel.active { display: block; }
+  .location-search { width: 100%; padding: 12px 14px; background: var(--vox-mid); border: 1px solid var(--vox-border); border-radius: 10px; color: var(--vox-white); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+  .location-search:focus { border-color: rgba(0,230,118,0.4); }
+  .location-search::placeholder { color: var(--vox-muted); }
+  .map-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
+  .map-zone {
+    aspect-ratio: 1; border-radius: 10px; background: rgba(255,255,255,0.03);
+    border: 1.5px solid var(--vox-border); cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; font-size: 18px;
+  }
+  .map-zone span { font-size: 10px; color: var(--vox-muted); }
+  .map-zone:hover { border-color: rgba(0,230,118,0.4); background: rgba(0,230,118,0.04); }
+  .map-zone.selected { border-color: var(--vox-green); background: rgba(0,230,118,0.1); }
+  .map-zone.you { background: rgba(0,230,118,0.15); border-color: var(--vox-green); }
+  .map-zone.you span { color: var(--vox-green); font-weight: 600; }
+  .map-label { padding: 10px 14px 0; font-size: 11px; color: var(--vox-muted); display: flex; align-items: center; gap: 6px; }
+  .map-label-dot { width: 6px; height: 6px; background: var(--vox-green); border-radius: 50%; box-shadow: 0 0 6px var(--vox-green); }
+
+  .game-footer { padding: 16px 20px 32px; background: var(--vox-mid); border-top: 1px solid var(--vox-border); position: sticky; bottom: 0; z-index: 10; }
+  .progress-chips { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .chip { flex: 1; min-width: 60px; padding: 6px; border-radius: 8px; font-size: 10px; text-align: center; border: 1px solid var(--vox-border); color: var(--vox-muted); transition: all 0.2s; }
+  .chip.done { background: rgba(0,230,118,0.12); border-color: rgba(0,230,118,0.3); color: var(--vox-green); }
+
+  /* ===== CONFIRMAR ===== */
+  #screen-confirm { padding: 32px 24px; justify-content: space-between; }
+  .confirm-header { margin-bottom: 24px; }
+  .order-summary { background: var(--vox-card); border: 1px solid var(--vox-border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+  .order-title { padding: 14px 18px; background: var(--vox-mid); border-bottom: 1px solid var(--vox-border); font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: var(--vox-muted); text-transform: uppercase; }
+  .order-item { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--vox-border); font-size: 14px; }
+  .order-item:last-child { border-bottom: none; }
+  .order-item-left { display: flex; align-items: center; gap: 10px; }
+  .order-item-emoji { font-size: 20px; }
+  .order-item-price { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--vox-green); }
+  .delivery-card { background: var(--vox-card); border: 1px solid var(--vox-border); border-radius: 16px; padding: 16px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .delivery-icon { font-size: 24px; }
+  .delivery-info { flex: 1; }
+  .delivery-label { font-size: 11px; color: var(--vox-muted); margin-bottom: 2px; }
+  .delivery-value { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--vox-white); }
+  .total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: rgba(0,230,118,0.05); border: 1px solid rgba(0,230,118,0.2); border-radius: 12px; margin-bottom: 24px; }
+  .total-label { font-size: 14px; color: var(--vox-muted); }
+  .total-amount { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--vox-green); }
+
+  /* ===== RESULTADO ===== */
+  #screen-result { padding: 0; justify-content: space-between; }
+  .result-top { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 24px; text-align: center; }
+  .result-icon { font-size: 72px; margin-bottom: 16px; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes popIn { from{transform:scale(0) rotate(-15deg);opacity:0} to{transform:scale(1) rotate(0);opacity:1} }
+  .result-title { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+  .result-subtitle { font-size: 15px; color: var(--vox-muted); margin-bottom: 28px; line-height: 1.5; }
+  .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; margin-bottom: 24px; }
+  .stat-card { background: var(--vox-card); border: 1px solid var(--vox-border); border-radius: 14px; padding: 16px 12px; text-align: center; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--vox-green); margin-bottom: 4px; }
+  .stat-label { font-size: 10px; color: var(--vox-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stars-row { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+  .star { font-size: 28px; animation: starPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .star:nth-child(1){animation-delay:0.3s} .star:nth-child(2){animation-delay:0.5s} .star:nth-child(3){animation-delay:0.7s}
+  @keyframes starPop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+  .insight-box { background: var(--vox-card); border: 1px solid var(--vox-border); border-left: 3px solid var(--vox-green); border-radius: 12px; padding: 14px 16px; text-align: left; font-size: 13px; line-height: 1.6; color: rgba(240,255,244,0.8); width: 100%; margin-bottom: 16px; }
+  .insight-box strong { color: var(--vox-green); }
+
+  /* Share card */
+  .share-card {
+    width: 100%; background: linear-gradient(135deg, #0A1A0D 0%, #0D1F10 50%, #091508 100%);
+    border: 1px solid rgba(0,230,118,0.25); border-radius: 20px; padding: 24px;
+    position: relative; overflow: hidden; margin-bottom: 16px;
+  }
+  .share-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,230,118,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .share-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .share-card-brand { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; color: var(--vox-green); letter-spacing: 1px; }
+  .share-card-tag { font-size: 10px; color: rgba(0,230,118,0.5); letter-spacing: 1.5px; text-transform: uppercase; }
+  .share-card-score { font-family: 'Syne', sans-serif; font-size: 52px; font-weight: 800; color: var(--vox-white); line-height: 1; margin-bottom: 4px; }
+  .share-card-pts { font-size: 11px; color: var(--vox-green); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  .share-card-stats { display: flex; gap: 16px; }
+  .share-card-stat { text-align: center; }
+  .share-card-stat-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--vox-white); }
+  .share-card-stat-label { font-size: 9px; color: var(--vox-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .share-card-handle { font-size: 11px; color: rgba(0,230,118,0.4); margin-top: 14px; }
+  .share-btns { display: flex; gap: 10px; margin-bottom: 14px; }
+  .btn-share { flex: 1; padding: 14px; border: none; border-radius: 12px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-ig { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); color: white; }
+  .btn-tw { background: #000; color: white; border: 1px solid #333; }
+  .btn-share:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+
+  /* Discount banner */
+  .discount-banner {
+    background: linear-gradient(135deg, rgba(157,78,221,0.15) 0%, rgba(0,230,118,0.1) 100%);
+    border: 1px solid rgba(157,78,221,0.3); border-radius: 14px;
+    padding: 16px; margin-bottom: 16px; text-align: center;
+  }
+  .discount-banner .d-tag { font-size: 10px; color: var(--vox-purple); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .discount-banner .d-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--vox-white); margin-bottom: 4px; }
+  .discount-banner .d-sub { font-size: 12px; color: rgba(240,255,244,0.6); line-height: 1.5; }
+  .challenge-box {
+    background: rgba(0,191,255,0.06); border: 1px solid rgba(0,191,255,0.2); border-radius: 14px;
+    padding: 16px; margin-bottom: 16px; text-align: center;
+  }
+  .challenge-box .c-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--vox-cyan); margin-bottom: 6px; }
+  .challenge-box .c-sub { font-size: 12px; color: rgba(240,255,244,0.6); line-height: 1.5; }
+
+  .result-bottom { padding: 20px 24px 48px; border-top: 1px solid var(--vox-border); display: flex; flex-direction: column; gap: 10px; }
+
+  /* ===== UNLOCK SCREEN ===== */
+  #screen-unlock { padding: 0; justify-content: center; align-items: center; background: var(--vox-dark); }
+  .unlock-content { text-align: center; padding: 40px 28px; display: flex; flex-direction: column; align-items: center; }
+  .unlock-badge {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,230,118,0.15) 0%, transparent 70%);
+    border: 2px solid rgba(0,230,118,0.3); display: flex; align-items: center; justify-content: center;
+    font-size: 40px; margin-bottom: 24px;
+    box-shadow: 0 0 60px rgba(0,230,118,0.2);
+    animation: unlockPulse 2s ease-in-out infinite;
+  }
+  @keyframes unlockPulse { 0%,100%{box-shadow:0 0 40px rgba(0,230,118,0.2)} 50%{box-shadow:0 0 80px rgba(0,230,118,0.4)} }
+  .unlock-tag { font-size: 10px; color: var(--vox-green); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .unlock-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .unlock-sub { font-size: 14px; color: var(--vox-muted); line-height: 1.6; max-width: 280px; margin-bottom: 32px; }
+  .badge-earned {
+    background: var(--vox-card); border: 1px solid var(--vox-border);
+    border-radius: 16px; padding: 18px 24px; margin-bottom: 28px;
+    display: flex; align-items: center; gap: 16px; width: 100%;
+  }
+  .badge-icon { font-size: 36px; }
+  .badge-info {}
+  .badge-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+  .badge-desc { font-size: 12px; color: var(--vox-muted); }
+  .progress-bar-wrap { width: 100%; background: var(--vox-border); border-radius: 8px; height: 6px; margin-bottom: 8px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--vox-green); border-radius: 8px; transition: width 1s ease; box-shadow: 0 0 8px rgba(0,230,118,0.4); }
+  .progress-label { font-size: 11px; color: var(--vox-muted); text-align: center; margin-bottom: 28px; }
+
+  /* ===== RANKING ===== */
+  #screen-ranking { padding: 48px 24px 40px; }
+  .rank-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .rank-tab { flex: 1; padding: 10px; background: var(--vox-card); border: 1px solid var(--vox-border); border-radius: 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--vox-muted); cursor: pointer; text-align: center; transition: all 0.2s; }
+  .rank-tab.active { background: rgba(0,230,118,0.12); border-color: rgba(0,230,118,0.3); color: var(--vox-green); }
+  .ranking-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .rank-item { background: var(--vox-card); border: 1px solid var(--vox-border); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; transition: all 0.2s; }
+  .rank-item.you-rank { border-color: rgba(0,230,118,0.4); background: rgba(0,230,118,0.06); }
+  .rank-item.top-1 { border-color: rgba(255,215,0,0.4); background: rgba(255,215,0,0.04); }
+  .rank-item.top-2 { border-color: rgba(192,192,192,0.3); }
+  .rank-item.top-3 { border-color: rgba(205,127,50,0.3); }
+  .rank-pos { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--vox-muted); min-width: 30px; }
+  .rank-pos.gold{color:#FFD700} .rank-pos.silver{color:#C0C0C0} .rank-pos.bronze{color:#CD7F32}
+  .rank-name { flex: 1; font-size: 14px; }
+  .rank-badges { display: flex; gap: 4px; font-size: 14px; }
+  .rank-score { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--vox-green); }
+  .rank-time { font-size: 12px; color: var(--vox-muted); }
+  .rank-hero {
+    background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02));
+    border: 1px solid rgba(255,215,0,0.2); border-radius: 16px; padding: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px;
+  }
+  .rank-hero-crown { font-size: 40px; }
+  .rank-hero-info {}
+  .rank-hero-label { font-size: 10px; color: var(--vox-gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .rank-hero-name { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+  .rank-hero-score { font-size: 13px; color: var(--vox-muted); }
+  .leaderboard-cta { background: rgba(0,230,118,0.06); border: 1px solid rgba(0,230,118,0.2); border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 20px; }
+  .leaderboard-cta p { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .leaderboard-cta span { font-size: 12px; color: var(--vox-muted); }
+
+  /* ===== NAV ===== */
+  .back-btn { background: none; border: none; color: var(--vox-muted); cursor: pointer; font-size: 14px; padding: 4px 0; display: flex; align-items: center; gap: 6px; margin-bottom: 20px; transition: color 0.2s; font-family: 'DM Sans', sans-serif; }
+  .back-btn:hover { color: var(--vox-white); }
+  .vox-branded { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.25); border-radius: 100px; padding: 5px 12px; font-size: 11px; color: var(--vox-green); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; margin-bottom: 20px; }
+
+  /* ===== GAME OVER ===== */
+  .gameover-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 32px; text-align: center; animation: fadeSlide 0.3s ease; }
+  .gameover-overlay.active { display: flex; }
+  .gameover-icon { font-size: 64px; }
+  .gameover-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; }
+  .gameover-msg { color: var(--vox-muted); font-size: 14px; line-height: 1.6; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--vox-border); border-radius: 4px; }
+
+  @media (min-width: 421px) {
+    body { background: #040705; }
+    #app { border-left: 1px solid var(--vox-border); border-right: 1px solid var(--vox-border); box-shadow: 0 0 80px rgba(0,0,0,0.8); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ========== INTRO ========== -->
+  <div id="screen-intro" class="screen active">
+    <div class="intro-top">
+      <div class="logo-badge"><div class="logo-dot"></div><span>VoxelaRush</span></div>
+      <h1 class="intro-title">Misión<br><em>Voxela</em></h1>
+      <p class="intro-sub">Comprá todo lo que necesitás <strong>antes que llegue el bondi.</strong> Tenés 30 segundos. ¿Podés?</p>
+      <div class="scenario-card">
+        <div class="scenario-icon">🚌</div>
+        <div class="scenario-text">
+          <strong>¿Cómo se juega?</strong>
+          Recibís una misión urbana. Elegís productos, confirmás ubicación y cerrás el pedido. Todo contrarreloj.
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-icon">⚡</div>
+        <div class="scenario-text">
+          <strong>Así funciona Voxela</strong>
+          Sin fricciones. Solo lo que necesitás, donde estás. Completá 3 estrellas y ganás 50% OFF.
+        </div>
+      </div>
+    </div>
+    <div class="intro-bottom">
+      <button class="btn-primary" onclick="goTo('level')">Empezar misión →</button>
+      <button class="btn-secondary" onclick="goTo('ranking')">🏆 Ver leaderboard</button>
+    </div>
+  </div>
+
+  <!-- ========== LEVEL SELECT ========== -->
+  <div id="screen-level" class="screen">
+    <div style="padding: 48px 24px 24px; flex: 1; display: flex; flex-direction: column;">
+      <button class="back-btn" onclick="goTo('intro')">← Volver</button>
+      <p class="section-label">Seleccioná escenario</p>
+      <h2 class="section-title">¿Dónde estás<br>ahora?</h2>
+      <p class="section-sub">Desbloqueá nuevos escenarios completando el anterior.</p>
+      <div class="level-grid" id="level-grid"></div>
+    </div>
+  </div>
+
+  <!-- ========== SCAN SCREEN ========== -->
+  <div id="screen-scan" class="screen">
+    <div class="scan-bg-ring"></div>
+    <div class="scan-bg-ring"></div>
+    <div class="scan-bg-ring"></div>
+    <div class="scan-content">
+      <div class="scan-radar">
+        <div class="scan-radar-sweep"></div>
+        <div class="scan-radar-dot"></div>
+      </div>
+      <p class="scan-label">VoxelaRush · Sistema activo</p>
+      <h2 class="scan-title" id="scan-title">Escaneando entorno...</h2>
+      <div class="scan-lines" id="scan-lines"></div>
+      <button class="btn-primary" id="scan-btn" onclick="launchLevel()" style="opacity:0; pointer-events:none; transition: opacity 0.5s;">INICIAR DESAFÍO ⚡</button>
+    </div>
+  </div>
+
+  <!-- ========== JUEGO ========== -->
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <div class="game-meta">
+        <div class="game-scenario">
+          <span class="game-scenario-emoji" id="g-emoji">🚌</span>
+          <span id="g-location">Metrobús Av. Corrientes</span>
+        </div>
+        <div class="timer-wrap">
+          <div class="timer-display" id="timer-display">30</div>
+          <span style="font-size:12px;color:var(--vox-muted)">s</span>
+        </div>
+      </div>
+      <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+      <div style="height:10px"></div>
+      <div class="mission-text" id="g-mission"></div>
+    </div>
+    <div class="game-body" id="game-body"></div>
+    <div class="game-footer">
+      <div class="progress-chips" id="progress-chips"></div>
+      <button class="btn-primary" id="btn-confirm-order" onclick="confirmOrder()" disabled>Confirmar pedido →</button>
+    </div>
+  </div>
+
+  <!-- ========== CONFIRMACIÓN ========== -->
+  <div id="screen-confirm" class="screen">
+    <div style="padding: 32px 24px;">
+      <div class="vox-branded">✓ Pedido armado</div>
+      <div class="section-title">Revisá tu<br>pedido</div>
+      <p class="section-sub" style="margin-bottom:20px">Voxela ya busca el punto más cercano a vos.</p>
+      <div class="order-summary">
+        <div class="order-title">Productos seleccionados</div>
+        <div id="order-items-list"></div>
+      </div>
+      <div class="delivery-card">
+        <div class="delivery-icon">📍</div>
+        <div class="delivery-info">
+          <div class="delivery-label">Tu ubicación</div>
+          <div class="delivery-value" id="confirm-location">—</div>
+        </div>
+      </div>
+      <div class="delivery-card">
+        <div class="delivery-icon">⚡</div>
+        <div class="delivery-info">
+          <div class="delivery-label">Entrega estimada</div>
+          <div class="delivery-value">8 minutos</div>
+        </div>
+      </div>
+      <div class="total-row">
+        <div class="total-label">Total</div>
+        <div class="total-amount" id="confirm-total">$0</div>
+      </div>
+    </div>
+    <div style="padding: 0 24px 48px; display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn-primary" onclick="finishGame()">¡Confirmar y pedir! 🚀</button>
+      <button class="btn-secondary" onclick="goTo('game')">← Cambiar selección</button>
+    </div>
+  </div>
+
+  <!-- ========== RESULTADO ========== -->
+  <div id="screen-result" class="screen">
+    <div class="result-top">
+      <div class="vox-branded">Misión completada</div>
+      <div class="result-icon" id="result-icon">⚡</div>
+      <div class="stars-row" id="stars-row"></div>
+      <h2 class="result-title" id="result-title">¡Rapidísimo!</h2>
+      <p class="result-subtitle" id="result-subtitle">Resolviste tu compra sin alterar tu rutina. Eso es Voxela.</p>
+      <div class="result-stats">
+        <div class="stat-card"><div class="stat-value" id="stat-time">—</div><div class="stat-label">segundos</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-points">—</div><div class="stat-label">puntos</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-rank">#—</div><div class="stat-label">ranking</div></div>
+      </div>
+
+      <!-- Share card preview -->
+      <div class="share-card" id="share-card">
+        <div class="share-card-header">
+          <div class="share-card-brand">VOXELARUSH</div>
+          <div class="share-card-tag">@voxela_ar</div>
+        </div>
+        <div class="share-card-score" id="sc-score">0</div>
+        <div class="share-card-pts">PUNTOS</div>
+        <div class="share-card-stats">
+          <div class="share-card-stat"><div class="share-card-stat-val" id="sc-time">—</div><div class="share-card-stat-label">seg</div></div>
+          <div class="share-card-stat"><div class="share-card-stat-val" id="sc-stars">—</div><div class="share-card-stat-label">estrellas</div></div>
+          <div class="share-card-stat"><div class="share-card-stat-val" id="sc-rank">—</div><div class="share-card-stat-label">ranking</div></div>
+        </div>
+        <div class="share-card-handle">voxela.com.ar · @voxela_ar</div>
+      </div>
+
+      <!-- Challenge CTA -->
+      <div class="challenge-box">
+        <div class="c-title">⚡ ¿Podés superar este tiempo?</div>
+        <div class="c-sub">Subí tu resultado a Instagram Stories etiquetando <strong style="color:var(--vox-cyan)">@voxela_ar</strong> y obtené un cupón de descuento real e inmediato para tu primera compra.</div>
+      </div>
+
+      <!-- Discount banner (3 stars) -->
+      <div class="discount-banner" id="discount-banner" style="display:none">
+        <div class="d-tag">🎉 Recompensa desbloqueada</div>
+        <div class="d-title">50% OFF en tu 3ª compra</div>
+        <div class="d-sub">Descargá la tarjeta de puntaje, subila a tus historias etiquetando <strong style="color:var(--vox-purple)">@voxela_ar</strong> y recibís el código por DM automáticamente.</div>
+      </div>
+
+      <div class="insight-box" id="result-insight"></div>
+    </div>
+
+    <div class="result-bottom">
+      <div class="share-btns">
+        <button class="btn-share btn-ig" onclick="shareIG()">📸 Instagram Stories</button>
+        <button class="btn-share btn-tw" onclick="shareTW()">𝕏 Twitter</button>
+      </div>
+      <button class="btn-primary" id="btn-next-level" onclick="goNextLevel()">Siguiente escenario →</button>
+      <button class="btn-secondary" onclick="goTo('ranking')">🏆 Ver leaderboard</button>
+      <button class="btn-secondary" onclick="goTo('level')">Cambiar misión</button>
+    </div>
+  </div>
+
+  <!-- ========== UNLOCK SCREEN ========== -->
+  <div id="screen-unlock" class="screen">
+    <div class="unlock-content">
+      <div class="unlock-badge" id="unlock-badge">🔓</div>
+      <p class="unlock-tag">Nuevo escenario desbloqueado ✔️</p>
+      <h2 class="unlock-title" id="unlock-title">¡Nivel completado!</h2>
+      <p class="unlock-sub" id="unlock-sub">Seguí avanzando para obtener badges exclusivos y mejorar tu posición en el Leaderboard público.</p>
+      <div class="badge-earned" id="badge-earned">
+        <div class="badge-icon" id="badge-icon">🏅</div>
+        <div class="badge-info">
+          <div class="badge-name" id="badge-name">Badge ganado</div>
+          <div class="badge-desc" id="badge-desc">Descripción</div>
+        </div>
+      </div>
+      <div style="width:100%;margin-bottom:8px">
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:25%"></div></div>
+        <div class="progress-label" id="prog-label">Progreso de campaña: 1/4 escenarios</div>
+      </div>
+      <button class="btn-primary" onclick="continueAfterUnlock()">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- ========== RANKING ========== -->
+  <div id="screen-ranking" class="screen">
+    <div style="padding: 48px 24px 40px;">
+      <button class="back-btn" onclick="goTo('intro')">← Volver</button>
+      <p class="section-label">Leaderboard global</p>
+      <h2 class="section-title">Top Players<br><em style="color:var(--vox-green)">VoxelaRush</em></h2>
+      <div class="rank-hero" id="rank-hero"></div>
+      <div class="rank-tabs">
+        <button class="rank-tab active" id="tab-weekly" onclick="switchRankTab('weekly')">Esta semana</button>
+        <button class="rank-tab" id="tab-all" onclick="switchRankTab('all')">Histórico</button>
+      </div>
+      <div class="leaderboard-cta">
+        <p>⚡ Entraste al Top Players de VoxelaRush</p>
+        <span>¿Podrás llegar al puesto #1?</span>
+      </div>
+      <div class="ranking-list" id="ranking-list"></div>
+      <button class="btn-primary" onclick="goTo('level')">Jugar y sumar puntos →</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- GAME OVER -->
+<div class="gameover-overlay" id="gameover-overlay">
+  <div class="gameover-icon">🚌💨</div>
+  <div class="gameover-title">¡Se fue el bondi!</div>
+  <div class="gameover-msg">No llegaste a confirmar el pedido a tiempo.<br>Cada segundo cuenta. ¡Dale otra vez!</div>
+  <div style="height:8px"></div>
+  <button class="btn-primary" style="max-width:260px" onclick="retryLevel()">Reintentar ↺</button>
+  <button class="btn-secondary" style="max-width:260px" onclick="gameoverBack()">Elegir otro escenario</button>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const LEVELS = [
+  {
+    id: 0,
+    emoji: '🚌',
+    name: 'Parada de colectivo',
+    location: 'Metrobús Av. Corrientes',
+    scanZone: 'PARADA DE COLECTIVO',
+    scanExtra: 'Tus coordenadas coinciden con una parada activa del Metrobús.',
+    time: 30,
+    mission: 'Tu colectivo llega en <strong>30 segundos</strong>. Necesitás agua, snack y cargador. ¡Elegí rápido!',
+    badge: { icon: '🚌', name: 'Viajero Urbano', desc: 'Completaste el primer desafío callejero' },
+    categories: [
+      { label: 'Hidratación', items: [
+        { emoji: '💧', name: 'Agua 500ml', price: 850 },
+        { emoji: '🟡', name: 'Gatorade limón', price: 1200 },
+        { emoji: '🍋', name: 'Jugo Cepita', price: 980 },
+      ]},
+      { label: 'Snack', items: [
+        { emoji: '🍪', name: 'Alfajor Milka', price: 650 },
+        { emoji: '🥜', name: 'Mix de nueces', price: 1400 },
+        { emoji: '🍫', name: 'Barra cereal', price: 550 },
+      ]},
+      { label: 'Tech', items: [
+        { emoji: '🔌', name: 'Cable USB-C', price: 1800 },
+        { emoji: '🎧', name: 'Auriculares', price: 3500 },
+        { emoji: '🔋', name: 'Powerbank', price: 7800 },
+      ]}
+    ],
+    mapZones: ['🏙️ Centro','🏠 Sur','🌆 Norte','📍 Aquí','🏬 Oeste','🛣️ Este','🌳 Park','🏥 Hosp.','🏫 Escuela']
+  },
+  {
+    id: 1,
+    emoji: '🌳',
+    name: 'Plaza',
+    location: 'Plaza de Mayo',
+    scanZone: 'PLAZA',
+    scanExtra: 'Tus coordenadas coinciden con un espacio urbano habilitado.',
+    time: 28,
+    mission: 'Estás en la plaza con tu reunión en <strong>28 segundos</strong>. Elegí bebida, comida y accesorio.',
+    badge: { icon: '🌳', name: 'Ciudadano Activo', desc: 'Dominaste el escenario plaza' },
+    categories: [
+      { label: 'Bebida', items: [
+        { emoji: '☕', name: 'Café frío', price: 1500 },
+        { emoji: '🧃', name: 'Jugo natural', price: 1200 },
+        { emoji: '💧', name: 'Agua mineral', price: 850 },
+      ]},
+      { label: 'Para comer', items: [
+        { emoji: '🥐', name: 'Medialunas x3', price: 900 },
+        { emoji: '🥪', name: 'Sándwich veggie', price: 1800 },
+        { emoji: '🍌', name: 'Banana + barra', price: 700 },
+      ]},
+      { label: 'Accesorio', items: [
+        { emoji: '🕶️', name: 'Lentes de sol', price: 4200 },
+        { emoji: '🧢', name: 'Gorra', price: 2200 },
+        { emoji: '🔌', name: 'Cable tipo-C', price: 1500 },
+      ]}
+    ],
+    mapZones: ['⛲ Fuente','🌳 Árboles','🏛️ Museo','📍 Aquí','🏪 Kiosco','🚴 Bicisenda','🎭 Teatro','🏛️ C.Rosa','🚌 Parada']
+  },
+  {
+    id: 2,
+    emoji: '🚇',
+    name: 'Subte',
+    location: 'Estación Callao, Línea B',
+    scanZone: 'SUBTE',
+    scanExtra: 'Tus coordenadas coinciden con una estación habilitada.',
+    time: 25,
+    mission: 'Estás en el andén, el subte sale en <strong>25 segundos</strong>. Necesitás bebida, snack y entretenimiento.',
+    badge: { icon: '🚇', name: 'Pasajero Pro', desc: 'Maestro de las compras en tránsito' },
+    categories: [
+      { label: 'Bebida', items: [
+        { emoji: '💧', name: 'Agua 600ml', price: 900 },
+        { emoji: '🥤', name: 'Gaseosa lata', price: 950 },
+        { emoji: '🧃', name: 'Jugo caja', price: 800 },
+      ]},
+      { label: 'Snack viajero', items: [
+        { emoji: '🍫', name: 'Chocolate Milka', price: 750 },
+        { emoji: '🥜', name: 'Maníes tostados', price: 650 },
+        { emoji: '🍪', name: 'Cookies oreo', price: 850 },
+      ]},
+      { label: 'Entretenimiento', items: [
+        { emoji: '🎧', name: 'Auriculares BT', price: 4500 },
+        { emoji: '📖', name: 'Revista urbana', price: 700 },
+        { emoji: '🔌', name: 'Cargador USB-C', price: 1800 },
+      ]}
+    ],
+    mapZones: ['🚪 Entrada','🎫 Boleterías','⬅️ Andén A','📍 Aquí','⬆️ Salida','🚶 Pasillo','🛍️ Kiosco','🔵 Línea B','🔴 Línea C']
+  },
+  {
+    id: 3,
+    emoji: '🏢',
+    name: 'Oficina',
+    location: 'Microcentro, Piso 8',
+    scanZone: 'OFICINA',
+    scanExtra: 'Tus coordenadas coinciden con una zona laboral habilitada por Voxela.',
+    time: 22,
+    mission: 'Pedido grupal de oficina. El delivery llega en <strong>22 segundos</strong>. Elegí para todos.',
+    badge: { icon: '🏢', name: 'Corporate Runner', desc: 'Pedido grupal completado sin falla' },
+    categories: [
+      { label: 'Cafetería', items: [
+        { emoji: '☕', name: 'Café x4', price: 3600 },
+        { emoji: '🫖', name: 'Té variado', price: 1800 },
+        { emoji: '🧃', name: 'Jugo naranja', price: 1200 },
+      ]},
+      { label: 'Para picar', items: [
+        { emoji: '🥐', name: 'Facturas x6', price: 1800 },
+        { emoji: '🍰', name: 'Torta zanahoria', price: 2400 },
+        { emoji: '🍪', name: 'Galletitas', price: 1100 },
+      ]},
+      { label: 'Descartables', items: [
+        { emoji: '🥤', name: 'Vasos x20', price: 800 },
+        { emoji: '🍴', name: 'Cubiertos', price: 600 },
+        { emoji: '📋', name: 'Servilletas', price: 400 },
+      ]}
+    ],
+    mapZones: ['🚪 Lobby','🅿️ PB','1️⃣ P1','📍 P8','3️⃣ P3','🏪 Local','☕ Bar','🏬 Galería','🚇 Subte']
+  },
+  {
+    id: 4,
+    emoji: '📚',
+    name: 'Facultad',
+    location: 'UBA Ciudad Universitaria',
+    scanZone: null,
+    time: 20,
+    mission: 'Presupuesto: $2000. Llegás tarde al final. <strong>20 segundos</strong>. ¡Optimizá tu compra!',
+    badge: { icon: '📚', name: 'Estudiante Flash', desc: 'Compra universitaria express' },
+    categories: [
+      { label: 'Bebida', items: [
+        { emoji: '💧', name: 'Agua 500ml', price: 850 },
+        { emoji: '🥤', name: 'Gaseosa lata', price: 950 },
+        { emoji: '🧉', name: 'Mate cocido', price: 600 },
+      ]},
+      { label: 'Energía', items: [
+        { emoji: '⚡', name: 'Energy drink', price: 1800 },
+        { emoji: '🍫', name: 'Chocolate', price: 750 },
+        { emoji: '🍎', name: 'Manzana', price: 400 },
+      ]},
+      { label: 'Útiles', items: [
+        { emoji: '✏️', name: 'Lapiceras x2', price: 600 },
+        { emoji: '📒', name: 'Anotador', price: 900 },
+        { emoji: '📌', name: 'Post-its', price: 550 },
+      ]}
+    ],
+    mapZones: ['📚 Biblio','🏛️ Pab.1','🌿 Verde','📍 Aquí','☕ Bar','🚴 Ciclovía','🚌 Parada','🏠 Comedor','⚽ Cancha']
+  }
+];
+
+const BADGES_DATA = [
+  { icon: '🚌', name: 'Viajero Urbano', desc: 'Primer nivel completado' },
+  { icon: '🌳', name: 'Ciudadano Activo', desc: '2 escenarios completados' },
+  { icon: '🚇', name: 'Pasajero Pro', desc: '3 escenarios completados' },
+  { icon: '🏢', name: 'Corporate Runner', desc: '4 escenarios completados' },
+  { icon: '📚', name: 'Estudiante Flash', desc: 'Campaña completa ⭐⭐⭐' },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentScreen = 'intro';
+let currentLevelId = 0;
+let currentLevel = null;
+let timerInterval = null;
+let timeLeft = 30;
+let timeTotal = 30;
+let selectedProducts = {};
+let selectedZone = null;
+let playerScore = 0;
+let playerTime = 0;
+let playerStars = 0;
+let unlockedLevels = [0]; // Only first level unlocked initially
+let earnedBadges = [];
+let currentRankTab = 'weekly';
+let afterUnlockNext = null;
+
+let ranking = [
+  { name: 'Sofi M.', points: 980, time: 4, stars: 3, badges: ['🚌','🌳','🚇'] },
+  { name: 'Nico A.', points: 870, time: 8, stars: 3, badges: ['🚌','🌳'] },
+  { name: 'Caro T.', points: 820, time: 11, stars: 2, badges: ['🚌'] },
+  { name: 'Mati R.', points: 760, time: 14, stars: 2, badges: ['🚌'] },
+  { name: 'Juli B.', points: 710, time: 17, stars: 1, badges: [] },
+  { name: 'Lucas P.', points: 640, time: 21, stars: 1, badges: [] },
+  { name: 'Vale G.', points: 580, time: 25, stars: 1, badges: [] },
+];
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function goTo(screen) {
+  clearTimer();
+  document.getElementById('gameover-overlay').classList.remove('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  currentScreen = screen;
+  if (screen === 'ranking') renderRanking();
+  if (screen === 'level') renderLevelGrid();
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// LEVEL GRID (progressive unlock)
+// ============================================================
+function renderLevelGrid() {
+  const grid = document.getElementById('level-grid');
+  grid.innerHTML = '';
+  const diffLabels = ['FÁCIL','MEDIO','MEDIO','DIFÍCIL','EXPERTO'];
+  const diffClasses = ['diff-easy','diff-mid','diff-mid','diff-hard','diff-hard'];
+  LEVELS.forEach((lv, i) => {
+    const isUnlocked = unlockedLevels.includes(i);
+    const card = document.createElement('div');
+    card.className = 'level-card ' + (isUnlocked ? 'unlocked' : 'locked');
+    if (isUnlocked) card.onclick = () => showScan(i);
+    card.innerHTML = `
+      <div class="level-emoji">${lv.emoji}</div>
+      <div class="level-info">
+        <div class="level-name">${lv.name}</div>
+        <div class="level-desc">${lv.location}</div>
+        ${!isUnlocked ? '<div class="level-lock-msg">Completá el nivel anterior para desbloquear.</div>' : ''}
+      </div>
+      ${isUnlocked
+        ? `<div class="level-diff ${diffClasses[i]}">${diffLabels[i]}</div>`
+        : `<div class="lock-icon">🔒</div>`
+      }
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// SCAN SCREEN
+// ============================================================
+const SCAN_TEXTS = {
+  0: ['Detectamos tu ubicación en tiempo real 📍', 'Estás dentro de una zona activa: PARADA DE COLECTIVO', 'Sincronizando con señal Voxela más cercana...', 'Afiche validado ✔️', 'Radio de experiencia habilitado ✔️', 'Tus coordenadas coinciden con una parada activa del Metrobús. Para mantener la experiencia precisa y contextual, solo se ha desbloqueado este escenario.'],
+  1: ['Detectamos tu ubicación en tiempo real 📍', 'Estás dentro de una zona activa: PLAZA', 'Sincronizando con señal Voxela más cercana...', 'Afiche validado ✔️', 'Radio de experiencia habilitado ✔️', 'Tus coordenadas coinciden con un espacio urbano habilitado. Para mantener la experiencia precisa y contextual, solo se ha desbloqueado este escenario.'],
+  2: ['Detectamos tu ubicación en tiempo real 📍', 'Estás dentro de una zona activa: SUBTE', 'Sincronizando con señal Voxela más cercana...', 'Afiche validado ✔️', 'Radio de experiencia habilitado ✔️', 'Tus coordenadas coinciden con una estación habilitada. Para mantener la experiencia precisa y contextual, solo se ha desbloqueado este escenario.'],
+  3: ['Detectamos tu ubicación en tiempo real 📍', 'Estás dentro de una zona activa: OFICINA', 'Sincronizando con señal Voxela más cercana...', 'Afiche validado ✔️', 'Radio de experiencia habilitado ✔️', 'Tus coordenadas coinciden con una zona laboral habilitada por Voxela. Para mantener la experiencia precisa y contextual, solo se ha desbloqueado este escenario.'],
+  4: ['Detectamos tu ubicación en tiempo real 📍', 'Estás dentro de una zona activa: FACULTAD', 'Sincronizando con señal Voxela más cercana...', 'Afiche validado ✔️', 'Radio de experiencia habilitado ✔️', 'Tus coordenadas coinciden con un campus universitario habilitado. Para mantener la experiencia precisa y contextual, solo se ha desbloqueado este escenario.'],
+};
+
+function showScan(levelId) {
+  currentLevelId = levelId;
+  currentLevel = LEVELS[levelId];
+  const linesEl = document.getElementById('scan-lines');
+  const titleEl = document.getElementById('scan-title');
+  const btn = document.getElementById('scan-btn');
+  titleEl.textContent = 'Escaneando entorno...';
+  linesEl.innerHTML = '';
+  btn.style.opacity = '0';
+  btn.style.pointerEvents = 'none';
+  goTo('scan');
+
+  const lines = SCAN_TEXTS[levelId] || SCAN_TEXTS[0];
+  let i = 0;
+  function addLine() {
+    if (i >= lines.length) {
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+      return;
+    }
+    const div = document.createElement('div');
+    const text = lines[i];
+    const isCheck = text.includes('✔️');
+    const isHighlight = text.includes('zona activa:') || text.includes('ubicación en tiempo real');
+    div.className = 'scan-line' + (isHighlight ? ' highlight' : '') + (isCheck ? ' check' : '');
+    div.innerHTML = isCheck ? `<span class="scan-check">✔</span> ${text.replace('✔️','')}` : text;
+    linesEl.appendChild(div);
+    i++;
+    setTimeout(addLine, i === 1 ? 600 : 800);
+  }
+  setTimeout(addLine, 800);
+}
+
+function launchLevel() {
+  startLevel(currentLevelId);
+}
+
+// ============================================================
+// GAME START
+// ============================================================
+function startLevel(levelId) {
+  currentLevel = LEVELS[levelId];
+  currentLevelId = levelId;
+  selectedProducts = {};
+  selectedZone = null;
+  timeLeft = currentLevel.time;
+  timeTotal = currentLevel.time;
+
+  document.getElementById('g-emoji').textContent = currentLevel.emoji;
+  document.getElementById('g-location').textContent = currentLevel.location;
+  document.getElementById('g-mission').innerHTML = currentLevel.mission;
+  document.getElementById('timer-display').textContent = timeLeft;
+  document.getElementById('timer-display').className = 'timer-display';
+  document.getElementById('timer-bar').style.width = '100%';
+  document.getElementById('timer-bar').style.background = 'var(--vox-green)';
+
+  renderGameBody();
+  renderProgressChips();
+  updateConfirmBtn();
+  goTo('game');
+  startTimer();
+}
+
+function retryLevel() {
+  document.getElementById('gameover-overlay').classList.remove('active');
+  startLevel(currentLevelId);
+}
+function gameoverBack() {
+  document.getElementById('gameover-overlay').classList.remove('active');
+  goTo('level');
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function startTimer() {
+  clearTimer();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const display = document.getElementById('timer-display');
+    const bar = document.getElementById('timer-bar');
+    const pct = (timeLeft / timeTotal) * 100;
+    display.textContent = timeLeft;
+    bar.style.width = pct + '%';
+    if (timeLeft <= timeTotal * 0.3) {
+      display.className = 'timer-display danger';
+      bar.style.background = 'var(--vox-red)';
+    } else if (timeLeft <= timeTotal * 0.5) {
+      display.className = 'timer-display warning';
+      bar.style.background = 'var(--vox-orange)';
+    }
+    if (timeLeft <= 0) {
+      clearTimer();
+      document.getElementById('gameover-overlay').classList.add('active');
+    }
+  }, 1000);
+}
+function clearTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+// ============================================================
+// GAME BODY
+// ============================================================
+function renderGameBody() {
+  const body = document.getElementById('game-body');
+  body.innerHTML = '';
+
+  // Products
+  const productsSection = document.createElement('div');
+  productsSection.id = 'products-section';
+  currentLevel.categories.forEach((cat, ci) => {
+    const groupLabel = document.createElement('div');
+    groupLabel.className = 'product-group-label';
+    groupLabel.textContent = cat.label;
+    productsSection.appendChild(groupLabel);
+    const row = document.createElement('div');
+    row.className = 'product-row';
+    cat.items.forEach((item, ii) => {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.id = `prod-${ci}-${ii}`;
+      card.innerHTML = `<div class="product-emoji">${item.emoji}</div><div class="product-name">${item.name}</div><div class="product-price">$${item.price.toLocaleString()}</div>`;
+      card.onclick = () => selectProduct(ci, ii);
+      row.appendChild(card);
+    });
+    productsSection.appendChild(row);
+  });
+  body.appendChild(productsSection);
+
+  // Location (tabs: mapa interactivo + texto)
+  const locSection = document.createElement('div');
+  locSection.id = 'location-section';
+  locSection.innerHTML = `
+    <p class="product-group-label">Ubicación</p>
+    <div class="location-section">
+      <div class="location-tabs">
+        <button class="location-tab active" onclick="switchLocTab('map')">🗺️ Mapa interactivo</button>
+        <button class="location-tab" onclick="switchLocTab('text')">📝 Ingresar dirección</button>
+      </div>
+      <div class="location-panel active" id="loc-panel-map">
+        <div class="map-label"><div class="map-label-dot"></div> Tocá tu ubicación</div>
+        <div class="map-grid" id="map-grid-inner"></div>
+      </div>
+      <div class="location-panel" id="loc-panel-text">
+        <input class="location-search" id="loc-input" type="text" placeholder="Ej: Av. Corrientes 1234, CABA" oninput="handleLocInput(this.value)" />
+        <div id="loc-suggestions" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+    </div>
+  `;
+  body.appendChild(locSection);
+
+  // Fill map grid
+  const mapGrid = document.getElementById('map-grid-inner');
+  currentLevel.mapZones.forEach((zone, zi) => {
+    const parts = zone.split(' ');
+    const zEmoji = parts[0];
+    const zName = parts.slice(1).join(' ');
+    const isYou = zone.includes('Aquí') || zone.includes('📍');
+    const z = document.createElement('div');
+    z.className = 'map-zone' + (isYou ? ' you' : '');
+    z.innerHTML = `${zEmoji}<span>${zName}</span>`;
+    z.onclick = () => selectZone(zi, z, zEmoji + ' ' + zName);
+    mapGrid.appendChild(z);
+  });
+}
+
+function switchLocTab(tab) {
+  document.querySelectorAll('.location-tab').forEach((t,i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'map') || (i === 1 && tab === 'text'));
+  });
+  document.getElementById('loc-panel-map').classList.toggle('active', tab === 'map');
+  document.getElementById('loc-panel-text').classList.toggle('active', tab === 'text');
+}
+
+function handleLocInput(val) {
+  const sug = document.getElementById('loc-suggestions');
+  sug.innerHTML = '';
+  if (!val || val.length < 3) return;
+  const suggestions = [
+    val + ', CABA',
+    val + ', Buenos Aires',
+    val + ', Palermo',
+    val + ', Microcentro',
+  ].slice(0, 3);
+  suggestions.forEach(s => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'background:var(--vox-card);border:1px solid var(--vox-border);border-radius:10px;padding:10px 14px;color:var(--vox-white);font-size:13px;text-align:left;cursor:pointer;transition:background 0.2s;font-family:DM Sans,sans-serif;';
+    btn.textContent = '📍 ' + s;
+    btn.onclick = () => {
+      document.getElementById('loc-input').value = s;
+      sug.innerHTML = '';
+      selectZone(-1, null, '📍 ' + s);
+    };
+    sug.appendChild(btn);
+  });
+}
+
+function selectProduct(catIdx, itemIdx) {
+  if (selectedProducts[catIdx] !== undefined) {
+    const prev = document.getElementById(`prod-${catIdx}-${selectedProducts[catIdx]}`);
+    if (prev) prev.classList.remove('selected');
+  }
+  selectedProducts[catIdx] = itemIdx;
+  const card = document.getElementById(`prod-${catIdx}-${itemIdx}`);
+  if (card) card.classList.add('selected');
+  renderProgressChips();
+  updateConfirmBtn();
+}
+
+function selectZone(zi, el, name) {
+  document.querySelectorAll('.map-zone').forEach(z => z.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+  selectedZone = name;
+  renderProgressChips();
+  updateConfirmBtn();
+}
+
+function renderProgressChips() {
+  const chips = document.getElementById('progress-chips');
+  chips.innerHTML = '';
+  currentLevel.categories.forEach((cat, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (selectedProducts[i] !== undefined ? ' done' : '');
+    chip.textContent = selectedProducts[i] !== undefined ? '✓ ' + cat.label : cat.label;
+    chips.appendChild(chip);
+  });
+  const zoneChip = document.createElement('div');
+  zoneChip.className = 'chip' + (selectedZone ? ' done' : '');
+  zoneChip.textContent = selectedZone ? '✓ Ubicación' : 'Ubicación';
+  chips.appendChild(zoneChip);
+}
+
+function updateConfirmBtn() {
+  const btn = document.getElementById('btn-confirm-order');
+  const catDone = Object.keys(selectedProducts).length === currentLevel.categories.length;
+  const ready = catDone && selectedZone;
+  btn.disabled = !ready;
+  btn.style.opacity = ready ? '1' : '0.4';
+}
+
+// ============================================================
+// CONFIRM ORDER
+// ============================================================
+function confirmOrder() {
+  clearTimer();
+  playerTime = currentLevel.time - timeLeft;
+  const list = document.getElementById('order-items-list');
+  list.innerHTML = '';
+  let total = 0;
+  currentLevel.categories.forEach((cat, ci) => {
+    const ii = selectedProducts[ci];
+    const item = cat.items[ii];
+    total += item.price;
+    list.innerHTML += `
+      <div class="order-item">
+        <div class="order-item-left">
+          <div class="order-item-emoji">${item.emoji}</div>
+          <div>${item.name}</div>
+        </div>
+        <div class="order-item-price">$${item.price.toLocaleString()}</div>
+      </div>
+    `;
+  });
+  document.getElementById('confirm-location').textContent = selectedZone || currentLevel.location;
+  document.getElementById('confirm-total').textContent = '$' + total.toLocaleString();
+  goTo('confirm');
+}
+
+// ============================================================
+// FINISH GAME
+// ============================================================
+function finishGame() {
+  const timeBonus = Math.max(0, currentLevel.time - playerTime);
+  playerScore = Math.round(1000 - playerTime * 20 + timeBonus * 10);
+  playerScore = Math.max(100, Math.min(1000, playerScore));
+
+  let stars = 1;
+  if (playerTime <= currentLevel.time * 0.35) stars = 3;
+  else if (playerTime <= currentLevel.time * 0.65) stars = 2;
+  playerStars = stars;
+
+  ranking.push({ name: 'Vos 📍', points: playerScore, time: playerTime, stars, badges: earnedBadges.map(b=>b.icon), you: true });
+  ranking.sort((a, b) => b.points - a.points);
+  const myRank = ranking.findIndex(r => r.you) + 1;
+
+  document.getElementById('stat-time').textContent = playerTime + 's';
+  document.getElementById('stat-points').textContent = playerScore;
+  document.getElementById('stat-rank').textContent = '#' + myRank;
+  document.getElementById('sc-score').textContent = playerScore;
+  document.getElementById('sc-time').textContent = playerTime + 's';
+  document.getElementById('sc-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3-stars);
+  document.getElementById('sc-rank').textContent = '#' + myRank;
+
+  const starsRow = document.getElementById('stars-row');
+  starsRow.innerHTML = '';
+  for (let i = 0; i < 3; i++) starsRow.innerHTML += `<div class="star">${i < stars ? '⭐' : '☆'}</div>`;
+
+  const titles = ['¡Lo lograste!', '¡Muy bien!', '¡Rapidísimo!'];
+  const subs = ['Resolviste tu compra sin alterar tu rutina. Eso es Voxela.', 'Compraste como un pro. Pocas opciones, decisión rápida.', '¡Récord! Tomaste decisiones en tiempo récord. Sos Voxela.'];
+  const icons = ['✅', '⚡', '🚀'];
+  document.getElementById('result-icon').textContent = icons[stars-1];
+  document.getElementById('result-title').textContent = titles[stars-1];
+  document.getElementById('result-subtitle').textContent = subs[stars-1];
+
+  const insights = [
+    `<strong>¿Sabías?</strong><br>Voxela elimina la fricción de elegir. Solo 3 opciones por categoría. Menos tiempo pensando, más tiempo viviendo.`,
+    `<strong>Curaduría inteligente:</strong><br>Voxela no te muestra 200 productos. Te muestra los 3 mejores según tu contexto.`,
+    `<strong>Inmediatez real:</strong><br>En el tiempo que tardaste en armar este pedido, Voxela ya localizó el punto de entrega más cercano.`
+  ];
+  document.getElementById('result-insight').innerHTML = insights[stars-1];
+
+  // 3 stars discount
+  const discountBanner = document.getElementById('discount-banner');
+  discountBanner.style.display = stars === 3 ? 'block' : 'none';
+
+  // Next level button
+  const nextId = currentLevelId + 1;
+  const nextBtn = document.getElementById('btn-next-level');
+  if (nextId < LEVELS.length) {
+    nextBtn.textContent = 'Siguiente: ' + LEVELS[nextId].name + ' →';
+    nextBtn.style.display = 'block';
+  } else {
+    nextBtn.style.display = 'none';
+  }
+
+  goTo('result');
+}
+
+// ============================================================
+// NEXT LEVEL / UNLOCK
+// ============================================================
+function goNextLevel() {
+  const nextId = currentLevelId + 1;
+  if (nextId >= LEVELS.length) { goTo('level'); return; }
+
+  // Unlock next level
+  if (!unlockedLevels.includes(nextId)) {
+    unlockedLevels.push(nextId);
+    const badge = LEVELS[currentLevelId].badge;
+    if (!earnedBadges.find(b => b.name === badge.name)) earnedBadges.push(badge);
+    afterUnlockNext = nextId;
+    showUnlockScreen(nextId, badge);
+  } else {
+    showScan(nextId);
+  }
+}
+
+function showUnlockScreen(nextId, badge) {
+  const nextLevel = LEVELS[nextId];
+  document.getElementById('unlock-badge').textContent = nextLevel.emoji;
+  document.getElementById('unlock-title').textContent = '¡' + nextLevel.name + ' desbloqueado!';
+  document.getElementById('unlock-sub').textContent = 'Seguí avanzando para obtener badges exclusivos y mejorar tu posición en el Leaderboard público.';
+  document.getElementById('badge-icon').textContent = badge.icon;
+  document.getElementById('badge-name').textContent = badge.name;
+  document.getElementById('badge-desc').textContent = badge.desc;
+  const pct = Math.round((nextId / LEVELS.length) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `Progreso de campaña: ${nextId}/${LEVELS.length} escenarios`;
+  goTo('unlock');
+}
+
+function continueAfterUnlock() {
+  if (afterUnlockNext !== null) {
+    const id = afterUnlockNext;
+    afterUnlockNext = null;
+    showScan(id);
+  } else {
+    goTo('level');
+  }
+}
+
+// ============================================================
+// SHARE
+// ============================================================
+function shareIG() {
+  alert('📸 Instagram Stories\n\nDescargá la tarjeta de puntaje y subila a tus historias etiquetando @voxela_ar.\n\n¡Si llegás a 3 estrellas recibís un 50% OFF por DM!');
+}
+function shareTW() {
+  const text = encodeURIComponent(`⚡ ¡Hice ${playerScore} puntos en #VoxelaRush! ¿Podés superarme?\n@voxela_ar`);
+  window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+}
+
+// ============================================================
+// RANKING
+// ============================================================
+function switchRankTab(tab) {
+  currentRankTab = tab;
+  document.getElementById('tab-weekly').classList.toggle('active', tab === 'weekly');
+  document.getElementById('tab-all').classList.toggle('active', tab === 'all');
+  renderRanking();
+}
+
+function renderRanking() {
+  const list = document.getElementById('ranking-list');
+  list.innerHTML = '';
+  const posClass = ['gold', 'silver', 'bronze'];
+  const top3Classes = ['top-1','top-2','top-3'];
+  const data = ranking.slice(0, 8);
+
+  // Hero card
+  if (data.length > 0) {
+    const hero = data[0];
+    document.getElementById('rank-hero').innerHTML = `
+      <div class="rank-hero-crown">👑</div>
+      <div class="rank-hero-info">
+        <div class="rank-hero-label">Líder actual</div>
+        <div class="rank-hero-name">${hero.name}</div>
+        <div class="rank-hero-score">${hero.points} pts · ${hero.time}s · ${'★'.repeat(hero.stars||1)}${'☆'.repeat(3-(hero.stars||1))}</div>
+      </div>
+    `;
+  }
+
+  data.forEach((r, i) => {
+    const badges = (r.badges || []).slice(0,3).join('');
+    list.innerHTML += `
+      <div class="rank-item ${r.you ? 'you-rank' : ''} ${top3Classes[i]||''}">
+        <div class="rank-pos ${posClass[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
+        <div>
+          <div class="rank-name">${r.name}${r.you ? ' <span style="color:var(--vox-green);font-size:11px">← vos</span>' : ''}</div>
+          <div class="rank-badges">${badges}</div>
+        </div>
+        <div>
+          <div class="rank-score">${r.points} pts</div>
+          <div class="rank-time">${r.time}s</div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// Init
+renderLevelGrid();
+</script>
+</body>
+</html>
